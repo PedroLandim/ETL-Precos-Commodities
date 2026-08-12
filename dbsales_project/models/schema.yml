@@ -1,0 +1,28 @@
+version: 2
+
+sources:
+  - name: dbsales_project
+    schema: public
+    tables:
+      - name: commodities
+        description: "Essa tabela tem as informações dos commodities"
+        columns:
+          - name: date
+            description: "Data do preço do commodity"
+          - name: close
+            description: "Preço de fechamento do commodity"
+          - name: simbolo
+            description: "Símbolo do commodity"
+
+      - name: movimentacao_commodities
+        description: "Tabela seed"
+        columns:
+          - name: date
+            description: "Data da venda"
+          - name: symbol
+            description: "ID do produto vendido"
+          - name: action
+            description: "Tipo de ação realizada (compra ou venda)"
+          - name: quantity
+            description: "Quantidade vendida"
+
