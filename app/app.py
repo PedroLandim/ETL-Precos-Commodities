@@ -1,19 +1,54 @@
 import pandas as pd
 import streamlit as st
 import os
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
+from sqlalchemy.engine import URL
 from dotenv import load_dotenv
 
 load_dotenv()
 
-DB_HOST = os.getenv('DB_HOST')
-DB_PORT = os.getenv('DB_PORT')
-DB_NAME = os.getenv('DB_NAME')
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-DB_SCHEMA = os.getenv('DB_SCHEMA')
+def get_setting(name):
+    if name in st.secrets and st.secrets.get(name):
+        return st.secrets.get(name)
+    return os.getenv(name)
 
-DB_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+DB_HOST = get_setting('DB_HOST')
+DB_PORT = get_setting('DB_PORT')
+DB_NAME = get_setting('DB_NAME')
+DB_USER = get_setting('DB_USER')
+DB_PASSWORD = get_setting('DB_PASSWORD')
+
+missing_settings = [
+    name for name, value in {
+        'DB_HOST': DB_HOST,
+        'DB_NAME': DB_NAME,
+        'DB_USER': DB_USER,
+        'DB_PASSWORD': DB_PASSWORD,
+    }.items()
+    if not value
+]
+
+if missing_settings:
+    st.error(
+        'Faltam variáveis de conexão configuradas: ' + ', '.join(missing_settings)
+    )
+    st.stop()
+
+try:
+    db_port = int(DB_PORT) if DB_PORT not in (None, '') else None
+except ValueError:
+    st.error('DB_PORT precisa ser um número inteiro válido.')
+    st.stop()
+
+DB_URL = URL.create(
+    drivername='postgresql',
+    username=DB_USER,
+    password=DB_PASSWORD,
+    host=DB_HOST,
+    port=db_port,
+    database=DB_NAME,
+)
 
 engine = create_engine(DB_URL)
 
