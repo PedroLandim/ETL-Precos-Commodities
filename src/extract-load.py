@@ -3,7 +3,7 @@ import pandas as pd
 import yfinance as yf
 import datetime as dt
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
 
@@ -25,7 +25,7 @@ engine = create_engine(DB_URL)
 
 # extração de dados
 
-def buscar_dados_commodities(simbolo, period="1y"):
+def buscar_dados_commodities(simbolo, period="3y"):
     ticker = yf.Ticker(simbolo)
     dados = ticker.history(period=period)[["Close"]]
     dados["simbolo"] = simbolo
@@ -39,7 +39,10 @@ def buscar_todos_dados_commodities(commodities):
     return pd.concat(todos_dados)
 
 def salvar_no_postgres(df, schema='public'):
-    df.to_sql('commodities', engine, schema=schema, if_exists='replace', index=True, index_label='date')
+    with engine.begin() as conn:
+        conn.execute(text(f'TRUNCATE TABLE {schema}.commodities'))
+
+    df.to_sql('commodities', engine, schema=schema, if_exists='append', index=True, index_label='date')
 
 # inicialização teste
 
